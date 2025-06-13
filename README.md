@@ -1,12 +1,52 @@
-# React + Vite
+# 成長曲線アプリケーション
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+このアプリケーションは、お子様の身長と体重を入力することで、成長曲線を自動で描画し、成長の記録を管理することができるツールです。
+日本小児内分泌学会の標準値データに基づいており、医療用の成長曲線に近い形式でグラフを表示します。
 
-Currently, two official plugins are available:
+## 主な機能
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **成長記録の入力**: お子様の名前、生年月日、性別、および日々の身長・体重を記録できます。
+- **成長曲線の描画**: 入力されたデータに基づき、身長と体重の成長曲線をグラフ上にプロットします。
+- **標準SD曲線**: 日本の子供の標準的な成長を示すSD曲線（-3SD〜+3SD）が表示され、成長の度合いを視覚的に確認できます。
+- **記録の管理**: 記録した測定値の一覧表示、および不要な記録の削除が可能です。
+- **グラフのダウンロード**: 表示されている成長曲線グラフをSVG形式の画像ファイルとしてダウンロードできます。
 
-## Expanding the ESLint configuration
+## 使い方
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1.  **お子様の情報入力**: お名前、生年月日、性別を入力します。
+2.  **測定値の入力**: 測定日、身長(cm)、体重(kg)を入力し、「記録を追加」ボタンをクリックします。
+3.  **記録の確認**: 入力した記録が下の「記録履歴」テーブルに追加されます。
+4.  **グラフの確認**: 生年月日を入力すると、成長曲線グラフが表示されます。プロットされた点や線で成長の推移を確認できます。
+5.  **記録の削除**: 履歴テーブルの「削除」ボタンで、不要な記録を削除できます。
+6.  **グラフのダウンロード**: 「グラフをダウンロード」ボタンをクリックすると、表示中のグラフをSVGファイルとして保存できます。
+
+## 技術スタック
+
+- [React](https://react.dev/)
+- [Vite](https://vitejs.dev/)
+- [D3.js](https://d3js.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+
+## デプロイ
+
+このアプリケーションは、GitHub PagesまたはRenderのような静的サイトホスティングサービスに簡単にデプロイできます。
+
+### GitHub Pages
+
+1.  `package.json`の`homepage`プロパティを、デプロイ先のURLに設定します。
+2.  `vite.config.js`の`base`がリポジトリ名になっていることを確認します。
+3.  以下のコマンドを実行してデプロイします。
+
+    ```bash
+    npm run deploy
+    ```
+
+### Render
+
+1.  GitHubにリポジトリをプッシュします。
+2.  Renderにログインし、「New +」 > 「Static Site」を選択します。
+3.  作成したGitHubリポジトリを選択します。
+4.  以下の設定を行います。
+    - **Build Command**: `npm install && npm run build`
+    - **Publish Directory**: `dist`
+5.  「Create Static Site」をクリックしてデプロイします。
