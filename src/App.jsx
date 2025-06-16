@@ -704,6 +704,57 @@ function App() {
     return ageInMonths / 12;
   };
 
+  // SD値を計算する関数（LMS法）
+  const calculateSDScore = (value, age, gender, measurementType) => {
+    const standards = growthStandards[gender][measurementType];
+    
+    // 年齢に最も近いデータポイントを見つける
+    let closestIndex = 0;
+    let minDiff = Math.abs(standards[0].age - age);
+    
+    for (let i = 1; i < standards.length; i++) {
+      const diff = Math.abs(standards[i].age - age);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = i;
+      }
+    }
+    
+    // 線形補間を使用してLMS値を取得
+    let L, M, S;
+    if (closestIndex === 0 || closestIndex === standards.length - 1 || 
+        standards[closestIndex].age === age) {
+      // 端点または完全一致の場合
+      L = standards[closestIndex].L;
+      M = standards[closestIndex].M;
+      S = standards[closestIndex].S;
+    } else {
+      // 補間が必要な場合
+      const i = age < standards[closestIndex].age ? closestIndex - 1 : closestIndex;
+      if (i >= 0 && i < standards.length - 1) {
+        const fraction = (age - standards[i].age) / (standards[i + 1].age - standards[i].age);
+        L = standards[i].L + fraction * (standards[i + 1].L - standards[i].L);
+        M = standards[i].M + fraction * (standards[i + 1].M - standards[i].M);
+        S = standards[i].S + fraction * (standards[i + 1].S - standards[i].S);
+      } else {
+        L = standards[closestIndex].L;
+        M = standards[closestIndex].M;
+        S = standards[closestIndex].S;
+      }
+    }
+    
+    // Z-scoreの計算
+    let z;
+    if (L === 0) {
+      z = Math.log(value / M) / S;
+    } else {
+      z = (Math.pow(value / M, L) - 1) / (L * S);
+    }
+    
+    // 小数点第2位で四捨五入
+    return Math.round(z * 10) / 10;
+  };
+
   const addMeasurement = () => {
     if (!childInfo.birthDate || !currentMeasurement.height || !currentMeasurement.weight) {
       alert('必要な情報を全て入力してください');
@@ -716,11 +767,20 @@ function App() {
       return;
     }
 
+    const height = parseFloat(currentMeasurement.height);
+    const weight = parseFloat(currentMeasurement.weight);
+    
+    // SD値を計算
+    const heightSD = calculateSDScore(height, age, childInfo.gender, 'height');
+    const weightSD = calculateSDScore(weight, age, childInfo.gender, 'weight');
+
     const newMeasurement = {
       ...currentMeasurement,
       age,
-      height: parseFloat(currentMeasurement.height),
-      weight: parseFloat(currentMeasurement.weight)
+      height,
+      weight,
+      heightSD,
+      weightSD
     };
 
     setMeasurements([...measurements, newMeasurement]);
@@ -900,7 +960,13 @@ function App() {
                       身長 (cm)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      身長SD
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       体重 (kg)
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      体重SD
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       操作
@@ -920,7 +986,25 @@ function App() {
                         {m.height}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <span className={`font-medium ${
+                          m.heightSD >= -2 && m.heightSD <= 2 ? 'text-green-600' : 
+                          m.heightSD < -2.5 || m.heightSD > 2.5 ? 'text-red-600' : 
+                          'text-yellow-600'
+                        }`}>
+                          {m.heightSD > 0 ? '+' : ''}{m.heightSD} SD
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {m.weight}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <span className={`font-medium ${
+                          m.weightSD >= -2 && m.weightSD <= 2 ? 'text-green-600' : 
+                          m.weightSD < -2 || m.weightSD > 2 ? 'text-red-600' : 
+                          'text-yellow-600'
+                        }`}>
+                          {m.weightSD > 0 ? '+' : ''}{m.weightSD} SD
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <button
