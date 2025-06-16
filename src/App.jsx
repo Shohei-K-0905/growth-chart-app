@@ -424,11 +424,34 @@ function CombinedGrowthChart({ measurements, gender, childName, patientId }) {
     const heightStandards = growthStandards[gender].height;
     const sdLevelsHeight = [3, 2, 1, 0, -1, -2, -2.5, -3];
     
+    // 年齢の補間のためのスケール
+    const ageToIndex = d3.scaleLinear()
+      .domain(heightStandards.map(d => d.age))
+      .range(heightStandards.map((d, i) => i));
+    
     sdLevelsHeight.forEach(sd => {
-      const data = heightStandards.map(s => ({
-        age: s.age,
-        value: calculateSDValue(null, s.L, s.M, s.S, sd)
-      }));
+      const data = [];
+      
+      // 0.1歳刻みでデータポイントを生成（滑らかな曲線のため）
+      for (let age = 0; age <= 17.5; age += 0.1) {
+        const index = ageToIndex(age);
+        const i = Math.floor(index);
+        const fraction = index - i;
+        
+        if (i >= 0 && i < heightStandards.length - 1) {
+          // 線形補間でLMS値を計算
+          const L = heightStandards[i].L + fraction * (heightStandards[i + 1].L - heightStandards[i].L);
+          const M = heightStandards[i].M + fraction * (heightStandards[i + 1].M - heightStandards[i].M);
+          const S = heightStandards[i].S + fraction * (heightStandards[i + 1].S - heightStandards[i].S);
+          
+          const value = calculateSDValue(null, L, M, S, sd);
+          data.push({ age, value });
+        } else if (i === heightStandards.length - 1) {
+          const { L, M, S } = heightStandards[i];
+          const value = calculateSDValue(null, L, M, S, sd);
+          data.push({ age, value });
+        }
+      }
 
       let strokeColor = "#0066cc";
       let strokeWidth = 1;
@@ -450,9 +473,9 @@ function CombinedGrowthChart({ measurements, gender, childName, patientId }) {
 
       // SDラベル（右側）
       const lastPoint = data[data.length - 1];
-      if (lastPoint.value >= 30 && lastPoint.value <= 190) {
+      if (lastPoint && lastPoint.value >= 30 && lastPoint.value <= 190) {
         g.append("text")
-          .attr("x", xScale(18) + 5)
+          .attr("x", xScale(17.5) + 5)
           .attr("y", yScaleHeight(lastPoint.value))
           .attr("fill", strokeColor)
           .style("font-size", "10px")
@@ -465,11 +488,34 @@ function CombinedGrowthChart({ measurements, gender, childName, patientId }) {
     const weightStandards = growthStandards[gender].weight;
     const sdLevelsWeight = [2, 1, 0, -1, -2];  // ±3SDを削除
     
+    // 年齢の補間のためのスケール
+    const ageToIndexWeight = d3.scaleLinear()
+      .domain(weightStandards.map(d => d.age))
+      .range(weightStandards.map((d, i) => i));
+    
     sdLevelsWeight.forEach(sd => {
-      const data = weightStandards.map(s => ({
-        age: s.age,
-        value: calculateSDValue(null, s.L, s.M, s.S, sd)
-      }));
+      const data = [];
+      
+      // 0.1歳刻みでデータポイントを生成（滑らかな曲線のため）
+      for (let age = 0; age <= 17.5; age += 0.1) {
+        const index = ageToIndexWeight(age);
+        const i = Math.floor(index);
+        const fraction = index - i;
+        
+        if (i >= 0 && i < weightStandards.length - 1) {
+          // 線形補間でLMS値を計算
+          const L = weightStandards[i].L + fraction * (weightStandards[i + 1].L - weightStandards[i].L);
+          const M = weightStandards[i].M + fraction * (weightStandards[i + 1].M - weightStandards[i].M);
+          const S = weightStandards[i].S + fraction * (weightStandards[i + 1].S - weightStandards[i].S);
+          
+          const value = calculateSDValue(null, L, M, S, sd);
+          data.push({ age, value });
+        } else if (i === weightStandards.length - 1) {
+          const { L, M, S } = weightStandards[i];
+          const value = calculateSDValue(null, L, M, S, sd);
+          data.push({ age, value });
+        }
+      }
 
       let strokeColor = "#0066cc";
       let strokeWidth = 1;
@@ -487,7 +533,7 @@ function CombinedGrowthChart({ measurements, gender, childName, patientId }) {
 
       // SDラベル（右側）
       const lastPoint = data[data.length - 1];
-      if (lastPoint.value >= 0 && lastPoint.value <= 110) {
+      if (lastPoint && lastPoint.value >= 0 && lastPoint.value <= 110) {
         g.append("text")
           .attr("x", width + 35)
           .attr("y", yScaleWeight(lastPoint.value))
