@@ -43,180 +43,206 @@ const calculateObesityDegree = (actualWeight, standardWeight) => {
   return ((actualWeight - standardWeight) / standardWeight) * 100;
 };
 
-// 成長標準値データ（日本小児内分泌学会 2016年データに基づく近似値）
-// LMS法による実際のデータに近い値を使用
+// LMS法による成長標準値データ（日本小児内分泌学会論文Table 2, Table 3より）
 const generateGrowthStandards = () => {
   const standards = { male: { height: [], weight: [] }, female: { height: [], weight: [] } };
   
-  // 実際の成長曲線により近いデータ
-  // 年齢ごとの平均値とSDを設定
-  const maleHeightData = [
-    {age: 0, mean: 49.89, sd: 2.11},
-    {age: 0.5, mean: 67.29, sd: 2.29},
-    {age: 1, mean: 75.58, sd: 2.83},
-    {age: 1.5, mean: 81.11, sd: 3.16},
-    {age: 2, mean: 85.60, sd: 3.42},
-    {age: 2.5, mean: 89.52, sd: 3.64},
-    {age: 3, mean: 93.08, sd: 3.85},
-    {age: 3.5, mean: 96.37, sd: 4.04},
-    {age: 4, mean: 99.51, sd: 4.23},
-    {age: 4.5, mean: 102.54, sd: 4.41},
-    {age: 5, mean: 105.51, sd: 4.58},
-    {age: 5.5, mean: 108.43, sd: 4.76},
-    {age: 6, mean: 111.31, sd: 4.93},
-    {age: 6.5, mean: 114.15, sd: 5.11},
-    {age: 7, mean: 116.96, sd: 5.28},
-    {age: 7.5, mean: 119.75, sd: 5.46},
-    {age: 8, mean: 122.52, sd: 5.64},
-    {age: 8.5, mean: 125.27, sd: 5.82},
-    {age: 9, mean: 128.00, sd: 6.00},
-    {age: 9.5, mean: 130.72, sd: 6.19},
-    {age: 10, mean: 133.43, sd: 6.38},
-    {age: 10.5, mean: 136.14, sd: 6.57},
-    {age: 11, mean: 138.85, sd: 6.77},
-    {age: 11.5, mean: 141.58, sd: 6.98},
-    {age: 12, mean: 144.34, sd: 7.19},
-    {age: 12.5, mean: 147.17, sd: 7.41},
-    {age: 13, mean: 150.08, sd: 7.64},
-    {age: 13.5, mean: 153.10, sd: 7.86},
-    {age: 14, mean: 156.24, sd: 8.06},
-    {age: 14.5, mean: 159.47, sd: 8.22},
-    {age: 15, mean: 162.74, sd: 8.32},
-    {age: 15.5, mean: 165.95, sd: 8.34},
-    {age: 16, mean: 168.97, sd: 8.29},
-    {age: 16.5, mean: 171.69, sd: 8.17},
-    {age: 17, mean: 173.99, sd: 8.00},
-    {age: 17.5, mean: 175.77, sd: 7.80},
-    {age: 18, mean: 177.00, sd: 7.59}
+  // PDFのTable 2より男児身長のLMS値
+  const maleHeightLMS = [
+    {age: 0, L: 2.300, M: 49.0, S: 0.0417},
+    {age: 0.25, L: 2.212, M: 61.5, S: 0.0378},
+    {age: 0.5, L: 2.124, M: 67.7, S: 0.0351},
+    {age: 0.75, L: 2.036, M: 71.6, S: 0.0335},
+    {age: 1, L: 1.948, M: 74.8, S: 0.0328},
+    {age: 1.25, L: 1.861, M: 77.8, S: 0.0328},
+    {age: 1.5, L: 1.773, M: 80.7, S: 0.0332},
+    {age: 1.75, L: 1.685, M: 83.4, S: 0.0340},
+    {age: 2, L: 1.597, M: 85.8, S: 0.0348},
+    {age: 2.5, L: 1.421, M: 89.7, S: 0.0364},
+    {age: 3, L: 1.245, M: 93.5, S: 0.0378},
+    {age: 3.5, L: 1.069, M: 97.1, S: 0.0386},
+    {age: 4, L: 0.894, M: 100.4, S: 0.0392},
+    {age: 4.5, L: 0.718, M: 103.6, S: 0.0397},
+    {age: 5, L: 0.542, M: 106.8, S: 0.0403},
+    {age: 5.5, L: 0.366, M: 110.1, S: 0.0410},
+    {age: 6, L: 0.190, M: 113.3, S: 0.0417},
+    {age: 6.5, L: 0.015, M: 116.4, S: 0.0423},
+    {age: 7, L: -0.161, M: 119.5, S: 0.0426},
+    {age: 7.5, L: -0.337, M: 122.4, S: 0.0426},
+    {age: 8, L: -0.513, M: 125.1, S: 0.0424},
+    {age: 8.5, L: -0.689, M: 127.8, S: 0.0421},
+    {age: 9, L: -0.864, M: 130.4, S: 0.0420},
+    {age: 9.5, L: -1.040, M: 133.1, S: 0.0424},
+    {age: 10, L: -1.216, M: 135.9, S: 0.0435},
+    {age: 10.5, L: -1.392, M: 138.8, S: 0.0453},
+    {age: 11, L: -1.401, M: 142.0, S: 0.0476},
+    {age: 11.5, L: -0.965, M: 145.4, S: 0.0500},
+    {age: 12, L: -0.275, M: 149.0, S: 0.0519},
+    {age: 12.5, L: 0.428, M: 153.1, S: 0.0526},
+    {age: 13, L: 0.931, M: 157.0, S: 0.0517},
+    {age: 13.5, L: 1.090, M: 160.5, S: 0.0491},
+    {age: 14, L: 0.865, M: 163.4, S: 0.0453},
+    {age: 14.5, L: 0.323, M: 165.6, S: 0.0414},
+    {age: 15, L: -0.370, M: 167.3, S: 0.0382},
+    {age: 15.5, L: -0.982, M: 168.6, S: 0.0358},
+    {age: 16, L: -1.267, M: 169.5, S: 0.0344},
+    {age: 16.5, L: -1.031, M: 170.1, S: 0.0340},
+    {age: 17, L: -0.516, M: 170.5, S: 0.0340},
+    {age: 17.5, L: 0.000, M: 170.8, S: 0.0340}
   ];
 
-  const maleWeightData = [
-    {age: 0, mean: 3.31, sd: 0.41},
-    {age: 0.5, mean: 7.68, sd: 0.90},
-    {age: 1, mean: 9.82, sd: 1.17},
-    {age: 1.5, mean: 11.20, sd: 1.36},
-    {age: 2, mean: 12.35, sd: 1.52},
-    {age: 2.5, mean: 13.42, sd: 1.68},
-    {age: 3, mean: 14.47, sd: 1.84},
-    {age: 3.5, mean: 15.53, sd: 2.01},
-    {age: 4, mean: 16.62, sd: 2.20},
-    {age: 4.5, mean: 17.74, sd: 2.40},
-    {age: 5, mean: 18.91, sd: 2.61},
-    {age: 5.5, mean: 20.13, sd: 2.84},
-    {age: 6, mean: 21.40, sd: 3.09},
-    {age: 6.5, mean: 22.74, sd: 3.36},
-    {age: 7, mean: 24.15, sd: 3.65},
-    {age: 7.5, mean: 25.65, sd: 3.97},
-    {age: 8, mean: 27.23, sd: 4.31},
-    {age: 8.5, mean: 28.91, sd: 4.68},
-    {age: 9, mean: 30.70, sd: 5.07},
-    {age: 9.5, mean: 32.60, sd: 5.50},
-    {age: 10, mean: 34.63, sd: 5.95},
-    {age: 10.5, mean: 36.78, sd: 6.44},
-    {age: 11, mean: 39.08, sd: 6.96},
-    {age: 11.5, mean: 41.52, sd: 7.51},
-    {age: 12, mean: 44.11, sd: 8.09},
-    {age: 12.5, mean: 46.85, sd: 8.70},
-    {age: 13, mean: 49.74, sd: 9.31},
-    {age: 13.5, mean: 52.73, sd: 9.90},
-    {age: 14, mean: 55.80, sd: 10.44},
-    {age: 14.5, mean: 58.86, sd: 10.91},
-    {age: 15, mean: 61.82, sd: 11.28},
-    {age: 15.5, mean: 64.56, sd: 11.52},
-    {age: 16, mean: 66.98, sd: 11.64},
-    {age: 16.5, mean: 69.00, sd: 11.63},
-    {age: 17, mean: 70.57, sd: 11.51},
-    {age: 17.5, mean: 71.68, sd: 11.31},
-    {age: 18, mean: 72.35, sd: 11.06}
+  // PDFのTable 2より女児身長のLMS値
+  const femaleHeightLMS = [
+    {age: 0, L: 1.200, M: 48.5, S: 0.0390},
+    {age: 0.25, L: 1.159, M: 60.1, S: 0.0361},
+    {age: 0.5, L: 1.117, M: 66.2, S: 0.0341},
+    {age: 0.75, L: 1.076, M: 70.2, S: 0.0327},
+    {age: 1, L: 1.034, M: 73.5, S: 0.0318},
+    {age: 1.25, L: 0.993, M: 76.6, S: 0.0316},
+    {age: 1.5, L: 0.952, M: 79.5, S: 0.0317},
+    {age: 1.75, L: 0.910, M: 82.2, S: 0.0321},
+    {age: 2, L: 0.869, M: 84.6, S: 0.0328},
+    {age: 2.5, L: 0.786, M: 88.4, S: 0.0344},
+    {age: 3, L: 0.703, M: 91.8, S: 0.0361},
+    {age: 3.5, L: 0.620, M: 95.4, S: 0.0376},
+    {age: 4, L: 0.538, M: 99.4, S: 0.0389},
+    {age: 4.5, L: 0.455, M: 103.2, S: 0.0399},
+    {age: 5, L: 0.372, M: 106.7, S: 0.0406},
+    {age: 5.5, L: 0.289, M: 109.7, S: 0.0411},
+    {age: 6, L: 0.206, M: 112.7, S: 0.0414},
+    {age: 6.5, L: 0.124, M: 115.5, S: 0.0416},
+    {age: 7, L: 0.041, M: 118.3, S: 0.0418},
+    {age: 7.5, L: -0.042, M: 121.2, S: 0.0421},
+    {age: 8, L: -0.114, M: 124.1, S: 0.0428},
+    {age: 8.5, L: -0.036, M: 127.2, S: 0.0438},
+    {age: 9, L: 0.213, M: 130.4, S: 0.0451},
+    {age: 9.5, L: 0.599, M: 133.8, S: 0.0466},
+    {age: 10, L: 1.055, M: 137.2, S: 0.0477},
+    {age: 10.5, L: 1.506, M: 140.6, S: 0.0481},
+    {age: 11, L: 1.879, M: 144.0, S: 0.0472},
+    {age: 11.5, L: 2.118, M: 147.2, S: 0.0447},
+    {age: 12, L: 2.190, M: 150.0, S: 0.0410},
+    {age: 12.5, L: 2.090, M: 152.1, S: 0.0367},
+    {age: 13, L: 1.843, M: 153.8, S: 0.0342},
+    {age: 13.5, L: 1.498, M: 155.1, S: 0.0324},
+    {age: 14, L: 1.124, M: 155.9, S: 0.0314},
+    {age: 14.5, L: 0.801, M: 156.6, S: 0.0310},
+    {age: 15, L: 0.602, M: 157.0, S: 0.0310},
+    {age: 15.5, L: 0.579, M: 157.3, S: 0.0310},
+    {age: 16, L: 0.742, M: 157.5, S: 0.0310},
+    {age: 16.5, L: 1.032, M: 157.7, S: 0.0310},
+    {age: 17, L: 1.295, M: 157.8, S: 0.0310},
+    {age: 17.5, L: 1.250, M: 157.8, S: 0.0310}
   ];
 
-  const femaleHeightData = [
-    {age: 0, mean: 49.28, sd: 2.04},
-    {age: 0.5, mean: 65.91, sd: 2.23},
-    {age: 1, mean: 74.25, sd: 2.75},
-    {age: 1.5, mean: 79.75, sd: 3.06},
-    {age: 2, mean: 84.20, sd: 3.31},
-    {age: 2.5, mean: 88.09, sd: 3.53},
-    {age: 3, mean: 91.63, sd: 3.73},
-    {age: 3.5, mean: 94.93, sd: 3.93},
-    {age: 4, mean: 98.10, sd: 4.11},
-    {age: 4.5, mean: 101.19, sd: 4.30},
-    {age: 5, mean: 104.23, sd: 4.48},
-    {age: 5.5, mean: 107.24, sd: 4.66},
-    {age: 6, mean: 110.22, sd: 4.84},
-    {age: 6.5, mean: 113.18, sd: 5.03},
-    {age: 7, mean: 116.12, sd: 5.22},
-    {age: 7.5, mean: 119.05, sd: 5.41},
-    {age: 8, mean: 121.96, sd: 5.60},
-    {age: 8.5, mean: 124.87, sd: 5.80},
-    {age: 9, mean: 127.77, sd: 6.00},
-    {age: 9.5, mean: 130.68, sd: 6.20},
-    {age: 10, mean: 133.60, sd: 6.41},
-    {age: 10.5, mean: 136.54, sd: 6.62},
-    {age: 11, mean: 139.52, sd: 6.83},
-    {age: 11.5, mean: 142.54, sd: 7.03},
-    {age: 12, mean: 145.60, sd: 7.20},
-    {age: 12.5, mean: 148.66, sd: 7.31},
-    {age: 13, mean: 151.66, sd: 7.35},
-    {age: 13.5, mean: 154.51, sd: 7.30},
-    {age: 14, mean: 157.09, sd: 7.17},
-    {age: 14.5, mean: 159.26, sd: 6.98},
-    {age: 15, mean: 160.91, sd: 6.74},
-    {age: 15.5, mean: 161.98, sd: 6.49},
-    {age: 16, mean: 162.48, sd: 6.23},
-    {age: 16.5, mean: 162.48, sd: 5.99},
-    {age: 17, mean: 162.10, sd: 5.79},
-    {age: 17.5, mean: 161.46, sd: 5.62},
-    {age: 18, mean: 160.70, sd: 5.50}
+  // PDFのTable 3より男児体重のLMS値
+  const maleWeightLMS = [
+    {age: 0, L: 0.774, M: 3.00, S: 0.149},
+    {age: 0.25, L: 0.490, M: 6.31, S: 0.131},
+    {age: 0.5, L: 0.262, M: 7.93, S: 0.119},
+    {age: 0.75, L: 0.082, M: 8.80, S: 0.110},
+    {age: 1, L: -0.062, M: 9.38, S: 0.105},
+    {age: 1.25, L: -0.177, M: 9.91, S: 0.102},
+    {age: 1.5, L: -0.269, M: 10.4, S: 0.101},
+    {age: 1.75, L: -0.344, M: 11.0, S: 0.102},
+    {age: 2, L: -0.408, M: 11.5, S: 0.103},
+    {age: 2.5, L: -0.513, M: 12.5, S: 0.108},
+    {age: 3, L: -0.607, M: 13.5, S: 0.113},
+    {age: 3.5, L: -0.703, M: 14.5, S: 0.119},
+    {age: 4, L: -0.804, M: 15.5, S: 0.123},
+    {age: 4.5, L: -0.913, M: 16.5, S: 0.127},
+    {age: 5, L: -1.026, M: 17.5, S: 0.131},
+    {age: 5.5, L: -1.136, M: 18.5, S: 0.134},
+    {age: 6, L: -1.236, M: 19.6, S: 0.138},
+    {age: 6.5, L: -1.321, M: 20.9, S: 0.142},
+    {age: 7, L: -1.384, M: 22.2, S: 0.146},
+    {age: 7.5, L: -1.420, M: 23.5, S: 0.152},
+    {age: 8, L: -1.429, M: 25.0, S: 0.159},
+    {age: 8.5, L: -1.407, M: 26.4, S: 0.166},
+    {age: 9, L: -1.358, M: 28.0, S: 0.174},
+    {age: 9.5, L: -1.284, M: 29.6, S: 0.182},
+    {age: 10, L: -1.191, M: 31.4, S: 0.189},
+    {age: 10.5, L: -1.084, M: 33.4, S: 0.195},
+    {age: 11, L: -0.971, M: 35.6, S: 0.200},
+    {age: 11.5, L: -0.862, M: 38.1, S: 0.204},
+    {age: 12, L: -0.764, M: 40.7, S: 0.206},
+    {age: 12.5, L: -0.686, M: 43.6, S: 0.205},
+    {age: 13, L: -0.636, M: 46.3, S: 0.201},
+    {age: 13.5, L: -0.619, M: 49.0, S: 0.196},
+    {age: 14, L: -0.642, M: 51.6, S: 0.187},
+    {age: 14.5, L: -0.705, M: 54.0, S: 0.178},
+    {age: 15, L: -0.809, M: 55.9, S: 0.169},
+    {age: 15.5, L: -0.952, M: 57.5, S: 0.161},
+    {age: 16, L: -1.127, M: 58.8, S: 0.155},
+    {age: 16.5, L: -1.325, M: 59.7, S: 0.151},
+    {age: 17, L: -1.534, M: 60.4, S: 0.147},
+    {age: 17.5, L: -1.739, M: 60.9, S: 0.141}
   ];
 
-  const femaleWeightData = [
-    {age: 0, mean: 3.21, sd: 0.39},
-    {age: 0.5, mean: 7.16, sd: 0.82},
-    {age: 1, mean: 9.18, sd: 1.06},
-    {age: 1.5, mean: 10.48, sd: 1.22},
-    {age: 2, mean: 11.59, sd: 1.36},
-    {age: 2.5, mean: 12.63, sd: 1.50},
-    {age: 3, mean: 13.66, sd: 1.64},
-    {age: 3.5, mean: 14.71, sd: 1.79},
-    {age: 4, mean: 15.78, sd: 1.95},
-    {age: 4.5, mean: 16.89, sd: 2.12},
-    {age: 5, mean: 18.04, sd: 2.30},
-    {age: 5.5, mean: 19.24, sd: 2.50},
-    {age: 6, mean: 20.49, sd: 2.71},
-    {age: 6.5, mean: 21.81, sd: 2.94},
-    {age: 7, mean: 23.20, sd: 3.19},
-    {age: 7.5, mean: 24.67, sd: 3.46},
-    {age: 8, mean: 26.23, sd: 3.75},
-    {age: 8.5, mean: 27.89, sd: 4.07},
-    {age: 9, mean: 29.66, sd: 4.41},
-    {age: 9.5, mean: 31.54, sd: 4.78},
-    {age: 10, mean: 33.55, sd: 5.17},
-    {age: 10.5, mean: 35.69, sd: 5.59},
-    {age: 11, mean: 37.97, sd: 6.04},
-    {age: 11.5, mean: 40.39, sd: 6.50},
-    {age: 12, mean: 42.95, sd: 6.97},
-    {age: 12.5, mean: 45.60, sd: 7.43},
-    {age: 13, mean: 48.29, sd: 7.85},
-    {age: 13.5, mean: 50.93, sd: 8.20},
-    {age: 14, mean: 53.41, sd: 8.47},
-    {age: 14.5, mean: 55.62, sd: 8.62},
-    {age: 15, mean: 57.44, sd: 8.66},
-    {age: 15.5, mean: 58.78, sd: 8.58},
-    {age: 16, mean: 59.60, sd: 8.40},
-    {age: 16.5, mean: 59.91, sd: 8.14},
-    {age: 17, mean: 59.78, sd: 7.83},
-    {age: 17.5, mean: 59.32, sd: 7.50},
-    {age: 18, mean: 58.65, sd: 7.17}
+  // PDFのTable 3より女児体重のLMS値
+  const femaleWeightLMS = [
+    {age: 0, L: 0.754, M: 2.95, S: 0.146},
+    {age: 0.25, L: 0.375, M: 5.86, S: 0.126},
+    {age: 0.5, L: 0.083, M: 7.32, S: 0.113},
+    {age: 0.75, L: -0.139, M: 8.14, S: 0.106},
+    {age: 1, L: -0.303, M: 8.72, S: 0.103},
+    {age: 1.25, L: -0.422, M: 9.26, S: 0.102},
+    {age: 1.5, L: -0.506, M: 9.82, S: 0.102},
+    {age: 1.75, L: -0.563, M: 10.4, S: 0.104},
+    {age: 2, L: -0.602, M: 11.0, S: 0.105},
+    {age: 2.5, L: -0.646, M: 12.1, S: 0.110},
+    {age: 3, L: -0.677, M: 13.1, S: 0.114},
+    {age: 3.5, L: -0.718, M: 14.0, S: 0.118},
+    {age: 4, L: -0.778, M: 15.1, S: 0.122},
+    {age: 4.5, L: -0.861, M: 16.1, S: 0.127},
+    {age: 5, L: -0.960, M: 17.1, S: 0.131},
+    {age: 5.5, L: -1.068, M: 18.2, S: 0.137},
+    {age: 6, L: -1.171, M: 19.4, S: 0.142},
+    {age: 6.5, L: -1.259, M: 20.6, S: 0.148},
+    {age: 7, L: -1.319, M: 21.9, S: 0.154},
+    {age: 7.5, L: -1.344, M: 23.2, S: 0.159},
+    {age: 8, L: -1.328, M: 24.5, S: 0.164},
+    {age: 8.5, L: -1.269, M: 25.9, S: 0.169},
+    {age: 9, L: -1.169, M: 27.4, S: 0.174},
+    {age: 9.5, L: -1.037, M: 29.2, S: 0.180},
+    {age: 10, L: -0.884, M: 31.2, S: 0.185},
+    {age: 10.5, L: -0.722, M: 33.6, S: 0.190},
+    {age: 11, L: -0.572, M: 36.3, S: 0.194},
+    {age: 11.5, L: -0.448, M: 39.0, S: 0.195},
+    {age: 12, L: -0.368, M: 41.5, S: 0.194},
+    {age: 12.5, L: -0.346, M: 43.8, S: 0.187},
+    {age: 13, L: -0.389, M: 45.8, S: 0.176},
+    {age: 13.5, L: -0.496, M: 47.5, S: 0.164},
+    {age: 14, L: -0.653, M: 48.8, S: 0.154},
+    {age: 14.5, L: -0.830, M: 49.8, S: 0.147},
+    {age: 15, L: -0.976, M: 50.6, S: 0.142},
+    {age: 15.5, L: -1.012, M: 51.2, S: 0.139},
+    {age: 16, L: -1.072, M: 51.6, S: 0.138},
+    {age: 16.5, L: -1.132, M: 51.9, S: 0.137},
+    {age: 17, L: -1.192, M: 52.1, S: 0.135},
+    {age: 17.5, L: -1.252, M: 52.3, S: 0.134}
   ];
 
   // データを格納
-  maleHeightData.forEach(d => standards.male.height.push(d));
-  maleWeightData.forEach(d => standards.male.weight.push(d));
-  femaleHeightData.forEach(d => standards.female.height.push(d));
-  femaleWeightData.forEach(d => standards.female.weight.push(d));
+  standards.male.height = maleHeightLMS;
+  standards.male.weight = maleWeightLMS;
+  standards.female.height = femaleHeightLMS;
+  standards.female.weight = femaleWeightLMS;
   
   return standards;
+};
+
+// LMS法によるSD値の計算関数
+const calculateSDValue = (y, L, M, S, sd) => {
+  // Z-score (SD) から実際の値を計算
+  // y = M * (1 + L * S * Z)^(1/L) when L ≠ 0
+  // y = M * exp(S * Z) when L = 0
+  
+  if (L === 0) {
+    return M * Math.exp(S * sd);
+  } else {
+    return M * Math.pow(1 + L * S * sd, 1/L);
+  }
 };
 
 const growthStandards = generateGrowthStandards();
@@ -394,14 +420,14 @@ function CombinedGrowthChart({ measurements, gender, childName, patientId }) {
       .y(d => yScaleWeight(d.value))
       .curve(d3.curveMonotoneX);
 
-    // 身長の標準曲線を描画
+    // 身長の標準曲線を描画（LMS法使用）
     const heightStandards = growthStandards[gender].height;
     const sdLevelsHeight = [3, 2, 1, 0, -1, -2, -2.5, -3];
     
     sdLevelsHeight.forEach(sd => {
       const data = heightStandards.map(s => ({
         age: s.age,
-        value: s.mean + sd * s.sd
+        value: calculateSDValue(null, s.L, s.M, s.S, sd)
       }));
 
       let strokeColor = "#0066cc";
@@ -435,14 +461,14 @@ function CombinedGrowthChart({ measurements, gender, childName, patientId }) {
       }
     });
 
-    // 体重の標準曲線を描画
+    // 体重の標準曲線を描画（LMS法使用）
     const weightStandards = growthStandards[gender].weight;
-    const sdLevelsWeight = [3, 2, 1, 0, -1, -2, -3];
+    const sdLevelsWeight = [2, 1, 0, -1, -2];  // ±3SDを削除
     
     sdLevelsWeight.forEach(sd => {
       const data = weightStandards.map(s => ({
         age: s.age,
-        value: s.mean + sd * s.sd
+        value: calculateSDValue(null, s.L, s.M, s.S, sd)
       }));
 
       let strokeColor = "#0066cc";
